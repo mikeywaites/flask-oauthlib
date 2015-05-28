@@ -757,7 +757,10 @@ class OAuth2RequestValidator(RequestValidator):
             return False
 
         # validate scopes
-        if not set(tok.scopes).issuperset(set(scopes)):
+        if ((getattr(tok, 'validate_scopes', None)
+             and not tok.validate_scopes(scopes))
+                or not set(tok.scopes).issuperset(set(scopes))):
+
             msg = 'Bearer token scope not valid.'
             request.error_message = msg
             log.debug(msg)
