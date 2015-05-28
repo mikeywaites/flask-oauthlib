@@ -756,15 +756,18 @@ class OAuth2RequestValidator(RequestValidator):
             log.debug(msg)
             return False
 
+        def token_scopes_valid(tok, scopes):
+            scope_validator = getattr(tok, 'validate_scopes', None)
+            if scope_validator:
+                if scope_validator(scopes):
+                    return True
+            elif set(tok.scopes).issuperset(set(scopes)):
+                return True
+
+            return False
+
         # validate scopes
-        scope_validator = getattr(tok, 'validate_scopes', None)
-        if scope_validator:
-            if not scope_validator(scopes):
-                msg = 'Bearer token scope not valid.'
-                request.error_message = msg
-                log.debug(msg)
-                return False
-        elif not set(tok.scopes).issuperset(set(scopes)):
+        if not token_scopes_valid(tok, scopes):
             msg = 'Bearer token scope not valid.'
             request.error_message = msg
             log.debug(msg)
